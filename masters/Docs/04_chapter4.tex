@@ -1,0 +1,193 @@
+\chapter{Implementacja}
+\thispagestyle{chapterBeginStyle}
+Rozdział jest opisem wykonanej implementacji do ograniczenia $RegexConstraint$. Zawarte zostały ważniejsze części kodu kompilującego
+wyrażenie regularne oraz algorytmu analizującego sekwencję zmiennych pod kątem wygenerowanego automatu. Implementacja została
+wykonana w języku C++11 z użyciem algorytmów zawartych w bibliotece standardowej oraz pakietu IBM ILOG CPLEX CP Optimizer dla języka
+C++. Równoważną implementację można wykonać dla języka Java (ze względu na wsparcie ze strony pakietu), jednak wykracza
+to poza zakres tej pracy.
+
+
+\section{Struktury danych}
+\par
+Ważną strukturą, która reprezentuje przejście pomiędzy dwoma stanami jest \textit{Transition} (patrz kod \ref{alg:Structures}).
+Przechowuje ona wartość akceptowaną przez daną relację oraz stan, do którego automat powinien przejść. Dodatkową
+informacją jest pole \textit{isEmptyString}, które mówi o tym, czy dane przejście ma być tzw. $\epsilon - transition$,
+czyli przejściem bezwarunkowym. Takie przejście nie pobiera kolejnego znaku z ciągu wejściowego, zamiast tego
+odbywa się pobierając tzw. pusty łańcuch znaków. Intuicyjnie jeśli automat znajduje się w stanie, w którym są
+$\epsilon - transition$ to może on niedeterministycznie przełączyć w stany, na które te przejścia pozwalają.
+\par
+W zaproponowanej implementacji strukturą reprezentującą sam stan jest wektor przejść stanowych. Kolejne indeksy
+tego wektora oznaczają kolejne możliwe wyjścia z tego stanu.
+
+\begin{figure}
+\begin{lstlisting}[caption=Struktury wykorzystywane w czasie konstruowania automatu $NFA$ oraz propagacji ograniczenia.,
+    style=customc, label=alg:Structures]
+/*
+ * Structures used by RegexConstraint
+ */
+typedef unsigned int StateNumber;
+struct Transition
+{
+    int value;
+    StateNumber newState;
+    bool isEmptyString;
+};
+typedef std::vector<Transition> State;
+typedef std::vector<State> StatesVector;
+\end{lstlisting}
+\end{figure}
+
+
+\section{Główna struktura ograniczenia}
+\par
+Zaimplementowana klasa \textit{RegexConstraintI} jest strukturą przechowującą wektor wygenerowanych stanów,
+wektor zmiennych z sekwencji wejściowej oraz wektor wartości dopuszczalnych umieszczonego tu ze względu
+na optymalizację (raz przygotowana struktura, aby algorytm nie musiał alokować jej za każdym krokiem propagacji).
+Wartym uwagi konstruktorem jest ten, który przyjmuje jako argumenty wyrażenie regularne oraz wektor zmiennych. W czasie jego
+działania następuje konstrukcja automatu $NFA$, który będzie później wielokrotnie używany w procesie filtrowania dziedzin.
+Działanie głównych funkcji/metod zawartych w tej klasie zostało opisane w rozdziale 3.
+
+\begin{figure}
+\begin{lstlisting}[caption=Główna klasa zawierająca implementację ograniczenia \textit{RegexConstraint}., style=customc]
+/**
+*  Class used by IBM CP solver's engine.
+*/
+class RegexConstraintI : public IloPropagatorI
+{
+public:
+
+    /*
+    * Constructor of regex constraint. It compiles regex to NFA and prepares feasibleValues vector.
+    */
+    RegexConstraintI(std::vector<IloIntVar> vars, std::string regex);
+
+    /*
+    * Constructor used by IBM CP engine.
+    */
+    RegexConstraintI(StatesVector states,
+                    std::vector<StatesVector> rect,
+                    std::vector<IloIntVar> vars);
+
+    /*
+    * Function used by IBM CP engine
+    */
+    IloPropagatorI* makeClone(IloEnv env) const override;
+
+    /*
+    * Method that is called during constraint propagation. The result of this method's work are reduced domains.
+    */
+    void execute() override;
+
+private:
+    void resetFeasibleValuesVectors();
+    void addState(State&& state);
+    int parseRegex(const std::string& str, uint index);
+    std::set<StateNumber> evaluateAutomatonWithInputVars();
+    std::set<StateNumber> findFinishStatesAfterSearch(std::set<StateNumber>& statesAfterSearching);
+    void reduceVarsDomains(std::set<StateNumber>& finishStates);
+
+    /*
+    * A vector used to store states created during regex compilation.
+    */
+    StatesVector states;
+
+    /*
+    * A vector of feasible values filled during automaton evaluation. For every state and every input variable
+    * the algorithm allocates a vector of states and values from wich given state was reached.
+    */
+    std::vector<StatesVector> feasibleValues;
+
+    /*
+    * A vector of IBM CP integer variables.
+    */
+    std::vector<IloIntVar> vars;
+};
+\end{lstlisting}
+\end{figure}
+
+
+\section{Parsowanie wyrażeń regularnych}
+\par
+Tłumaczenie wyrażeń regularnych na automaty skończone służy do wstępnego przygotowania danych dla algorytmu filtrującego.
+W literaturze opisano co najmniej kilka metod, m.in. metodę Thompsona. W zaproponowanej implementacji użyta została
+wspomniana metoda (jej interpretacja). Istnieją metody, które lepiej dysponują zasobami w postaci czasu działania oraz pamięci.
+Pozwala to na dalszy rozwój oraz optymalizację proponowanego algorytmu.
+\par
+Funkcja \textit{parseRegex} (patrz kod \ref{alg:parseRegex}) służy do tłumaczenia wyrażeń regularnych na automaty skończone $NFA$. Jest to interpretacja
+metody Thompsona omówionej w poprzednich rozdziałach. Ze względu na bezkontekstowość gramatyki wyrażeń regularnych spowodowanej
+dodaniem zagnieżdżonych nawiasów należało wprowadzić rekurencyjne odwołania w przypadku napotkaniu symbolu ,,$($''. W celu
+umożliwienia wprowadzania liczb większych niż jednocyfrowe, gramatyka zakłada, że kolejne liczby powinny być oddzielone od
+siebie znakiem innym niż cyfra. Dla przykładu w przypadku, gdy użytkownik dla zmiennych $X_1, X_2, X_3$ zechce narzucić ograniczenie,
+aby $X_1 = 10$, $X_2 = (22)^*$ i $X_3 = 30$, wystarczy określić wyrażenie: $10 \; 22^*30$.
+\par
+Wspomniana funkcja iteruje się po kolejnych symbolach z zadanego łańcucha znaków, zaczynając od danego indeksu (jako pierwsze wywołanie
+metoda zaczyna analizę od początku ciągu, czyli indeksu równemu $0$). Główną częścią tej metody jest instrukcja \textit{switch},
+która w przypadku napotkania danego symbolu odpowiednio go interpretuje dodając nowy stan, bądź nowe przejścia do istniejących stanów.
+W przypadku wystąpienia nawiasów funkcja odpowiednio wykonuje rekurencyjnie samą siebie, gdy napotka nawias otwierający oraz powraca
+do poprzedniego wywołania napotykając nawias zamykający. Za każdym takim razem funkcja dodaje do automatu stan oznaczający przejście po wszystkich
+symbolach zawartych wewnątrz nawiasu oraz zwraca ostatni przetwarzany indeks, aby funkcja, która ją wywołała mogła kontynuować przetwarzanie
+od tego miejsca.
+\par
+Gdy funkcja napotka znak gwiazdki $*$ (domknięcie Kleene'ego) to stworzy w automacie pętlę przez dodanie $\epsilon$-przejścia do początku
+ostatniego bloku. Znak $?$ powoduje akceptację poprzedniego symbolu/bloku lub bezwarunkowe pominięcie tego symbolu. W przypadku,
+gdy analizowanym znakiem będzie $|$ (alternatywa), algorytm zachowa się różnie w zależności od tego, czy kolejnym elementem będzie
+symbol czy blok zagnieżdżony pomiędzy nawiasami.
+
+
+\begin{figure}
+\begin{lstlisting}[caption=Metoda kompilująca wyrażenie regularne do automatu NFA, style=customc, label=alg:parseRegex]
+int RegexConstraintI::parseRegex(const std::string& str, uint index)
+{
+    uint prelastState = states.size()-1;
+    int currentNumber = 0;
+    for(uint i=index; i<str.length(); i++)
+        switch(str[i])
+        {
+            case '(':
+                prelastState = states.size();
+                i = parseRegex(str, i+1);
+            break;
+            case ')':
+                addState({Transition {-1, (StateNumber) states.size()+1, true}});
+                return i;
+            break;
+            case '*':
+                states[states.size()-1][0].newState = prelastState;
+                states[prelastState].push_back(Transition {-1, (StateNumber) states.size(), true});
+            break;
+            case '?':
+                states[prelastState].push_back(Transition {-1, (StateNumber) states.size(), true});
+            break;
+            case '|':
+                while(i<str.length()-1 and str[i+1] == ' ')
+                    i++;
+                if(str[i+1] != '(')
+                {
+                    states[prelastState].push_back(Transition {-1, (StateNumber) states.size()+1, true});
+                    addState({Transition {-1, (StateNumber) states.size()+2, true}});
+                }
+                else
+                {
+                    states[prelastState].push_back(Transition {-1, (StateNumber) states.size()+1, true});
+                    addState({});
+                    prelastState = states.size()-1;
+                    i = parseRegex(str, i+2);
+                    states[prelastState].push_back(Transition {-1, (StateNumber) states.size(), true});
+                }
+            break;
+            default:
+                if(str[i] >= '0' and str[i] <= '9')
+                {
+                    currentNumber = currentNumber*10 + (str[i] - '0');
+                    if(i>=str.length()-1 or str[i+1] < '0' or str[i+1] > '9' )
+                    {
+                        prelastState = states.size();
+                        addState({ Transition {currentNumber, (StateNumber) states.size()+1, false} });
+                        currentNumber = 0;
+                    }
+                }
+        }
+    return str.length();
+}
+\end{lstlisting}
+\end{figure}

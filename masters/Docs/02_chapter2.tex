@@ -1,0 +1,209 @@
+\chapter{Analiza problemu}
+\thispagestyle{chapterBeginStyle}
+Rozdział zawiera opis ograniczenia filtrującego dziedziny przy pomocy automatu skończonego. Omówiono schemat tworzenia
+automatu $NFA$ na podstawie wyrażenia regularnego metodą Thompsona. Sposoby opisu globalnych ograniczeń przy pomocy automatów
+skończonych z licznikiem zostały wprowadzone w różnych implementacjach języka Prolog, co pozwoliło na usprawnienie procesu modelowania~
+\cite{Automata}. Praca skupia się jednak na automatach skończonych, które nie zawierają liczników, co pozwala na wprowadzenie
+wygodniejszego interfejsu dla użytkownika (wyrażenia regularne zamiast opis automatu skończonego) oraz większą wydajność.
+
+\section{Założenia}
+\par
+Algorytm filtrujący ma za zadanie zredukować dziedziny zmiennych celem skrócenia poszukiwania dopuszczalnego rozwiązania.
+Dla zadanego wyrażenia regularnego $R$ oraz sekwencji zmiennych $(X_1, X_2, ... , X_n)$ proponowany algorytm
+powinien rozpropagować wśród zadanych zmiennych ograniczenie polegające na akceptacji jedynie takich krotek
+$(a_1, a_2, ... , a_n)$, które są akceptowane przez automat skończony równoważny z zadanym $R$. Dla przykładu
+propagacja w ciągu zmiennych binarnych $(X_1, X_2, X_3, X_4)$ wyrażenia \textit{"0* 1 1 1 0*"} powinna zawęzić dziedziny
+zmiennych $X_2$ oraz $X_3$ do wartości $1$. W przypadku stwierdzenia, że dla zmiennych o danych dziedzinach nie jest
+możliwe wartościowanie akceptowane przez automat, algorytm powinien zgłosić naruszenie ograniczenia.
+\par
+W celu zinterpretowania wyrażenia regularnego na potrzeby propagacji konieczne jest stworzenie na jego podstawie
+automatu skończonego. W dalszej części rozdziału omówiony został sposób kompilacji wyrażeń regularnych oraz krótka analiza
+pozytywnych oraz negatywnych cech wybranych metod. Ostatnia część zawiera znane w literaturze algorytmy
+wykorzystujące automaty niedeterministyczne do testowania zadanego tekstu pod kątem akceptacji przez automat.
+W kolejnym rozdziale przedstawiono modyfikacje omówionych algorytmów pozwalające na filtrowanie dziedzin zmiennych
+w problemach programowania z ograniczeniami.
+
+\section{Kompilacja wyrażenia regularnego}
+\par
+Istnieje co najmniej kilka sposobów na przetłumaczenie wyrażenia regularnego na automat skończony. W przypadku problemów
+wyszukiwania wzorca w tekście jedną z możliwości jest kompilacja do automatu $DFA$, ta jednak wymaga asymptotycznie
+wykładniczej ilości pamięci w stosunku do długości wyrażenia regularnego w najgorszym przypadku. Jest to powód, który
+czyni tę metodę niepraktyczną pomimo czasu działania zależnego liniowo od długości tekstu do przeszukania.
+\par
+Drugą metodą jaka się nasuwa jest kompilacja do $NFA$. Przykładem może być algorytm Thompsona~\cite{Thompson}, który na podstawie wyrażenia
+regularnego ,,składa'' automat niedeterministyczny przy pomocy prostych reguł zdefiniowanych dla podstawowych
+operatorów języków regularnych opisanych w pierwszym rozdziale. Podręcznik "Handbook of Formal Languages vol. 2"~\cite{FormalLanguages2}
+wspomina o metodzie Thompsona oraz opisuje drugą wersję pozbawioną tzw. $\epsilon$-przejść pomiędzy stanami. Dla uproszczenia analizy
+w pracy tej wykorzystano jednak pierwszą z nich.
+\begin{theorem}
+Metoda Thompsona ma złożoność czasową i pamięciową kompilacji wyrażenia regularnego do $NFA$ ograniczoną przez $O(|r|)$.
+\end{theorem}
+\begin{figure}
+	\centering
+	\begin{center}
+	\begin{subfigure}{0.45\textwidth}
+		\resizebox{\linewidth}{!}{
+			\begin{tikzpicture}[>=stealth',shorten >=1pt,auto,node distance=1.0cm]
+				\node[state,initial] (q_0)   {};
+				\node[state] (q_1) [above right=of q_0] {};
+				\node[state] (q_11) [right=of q_1] {};
+				\node[state] (q_2) [below right=of q_0] {}; 
+				\node[state] (q_22) [right=of q_2] {};
+				\node[state,accepting](q_3) [below right=of q_11] {};
+				\node [draw=black!50, fit={(q_1) (q_11)}] {};
+				\node [draw=black!50, fit={(q_2) (q_22)}] {};
+				\path[->] 
+					(q_0) edge  node  {$\epsilon$} (q_1)
+						edge  node  {$\epsilon$} (q_2)
+					(q_11) edge  node  {$\epsilon$} (q_3)
+					(q_22) edge  node  {$\epsilon$} (q_3);
+			\end{tikzpicture}
+		}
+		\caption{Konstrukcja alternatywy.}
+	\end{subfigure}
+	\end{center}
+	\hspace{15pt}
+	\begin{center}
+	\begin{subfigure}{0.45\textwidth}
+		\resizebox{\linewidth}{!}{
+			\begin{tikzpicture}[>=stealth',shorten >=1pt,auto,node distance=1.0cm]
+				\node[state,initial] (q_0)   {};
+				\node[state] (q_1) [right=of q_0] {};
+				\node[state] (q_2) [right=of q_1] {}; 
+				\node[state,accepting](q_3) [right=of q_2] {};
+				\node [draw=black!50, fit={(q_0) (q_1)}] {};
+				\node [draw=black!50, fit={(q_2) (q_3)}] {};
+				\path[->] 
+					(q_1) edge  node  {$\epsilon$} (q_2);
+			\end{tikzpicture}
+		}
+		\caption{Konstrukcja konkatenacji.}
+	\end{subfigure}
+	\end{center}
+	\hspace{15pt}
+	\begin{center}
+	\begin{subfigure}{0.45\textwidth}
+		\resizebox{\linewidth}{!}{
+			\begin{tikzpicture}[>=stealth',shorten >=1pt,auto,node distance=1.0cm]
+				\node[state,initial] (q_0)   {}; 
+				\node[state] (q_1) [right=of q_0] {};
+				\node[state] (q_2) [right=of q_1] {}; 
+				\node[state,accepting](q_3) [right=of q_2] {};
+				\node [draw=black!50, fit={(q_1) (q_2)}] {};
+				\path[->] 
+					(q_0) edge [bend right=35] node  {$\epsilon$} (q_3)
+						edge node  {$\epsilon$} (q_1)
+					(q_2) edge [bend right=35]  node  {$\epsilon$} (q_1)
+						edge node  {$\epsilon$} (q_3);
+			\end{tikzpicture}
+		}
+		\caption{Konstrukcja operatora gwiazdki - domknięcia Kleene'ego.}
+	\end{subfigure}
+	\end{center}
+	\caption{Powyższa figura przedstawia struktury potrzebne do skonstruowania automatu $NFA$ metodą Thompsona~\cite{Thompson}.}
+\end{figure}
+
+\section{Działanie automatu}
+\par
+Choć sama kompilacja działa w czasie liniowym oraz wymaga wielkości pamięci liniowo zależnej od długości wyrażenia regularnego, to
+kluczowym problemem jest tutaj sam algorytm przetwarzający tekst wejściowy zgodnie z automatem. Metoda przeszukiwania z nawrotami
+wymaga wykładniczego czasu względem liczby stanów automatu, ponieważ każde miejsce, w którym występuje niedeterministyczne przejście
+pomiędzy stanami jest przeszukiwane oddzielnie.
+\par
+Istnieje jednak algorytm, który ,,symuluje'' niedeterminizm występujący w automatach $NFA$ - \textit{RegularExpressionTester}~
+\cite{FormalLanguages2}. Zasada jego działania polega na tym, aby utrzymywać zbiór stanów, w którym aktualnie
+znajduje się automat. Innymi słowy zamiast jednego stanu w danym czasie automat może znajdować się w wielu stanach,
+aktualizując każdy ze stanów w czasie wczytywania kolejnych znaków z wejścia. Wartość zwrócona przez funkcję
+\textit{RegularExpressionTester} mówi o tym, czy wejściowy ciąg znaków został zaakceptowany przez automat.
+\begin{theorem}
+Metoda \textit{RegularExpressionTester} z podręcznika ,,Handbook of Formal Languages''~\cite{FormalLanguages2} ma złożoność czasową
+zależną od długości wejścia i liczby stanów $O(n*k)$. Złożoność pamięciowa wynosi $O(k)$.
+\end{theorem}
+\begin{figure}
+	\centering
+	{\small
+		\begin{pseudokod}[H]
+		\SetArgSty{normalfont}
+		\SetKwProg{Fn}{Function}{}{}
+		\SetKwFunction{Enqueue}{Enque}
+		\SetKwFunction{Dequeue}{Dequeue}
+		\Fn{Closure($E$, $S$)}
+		{
+			R $\leftarrow$ S \\
+			Q $\leftarrow$ empty queue \\
+			\ForEach{$p \in S$}
+			{
+				\Enqueue{Q, $p$}
+			}
+			\While{Q is not empty}
+			{
+				p $\leftarrow$ \Dequeue{Q} \\
+				\ForEach{state $q$ such that $(p, \epsilon, q) \in E$}
+				{
+					\If{$q \notin R$}
+					{
+						R $\leftarrow$ $R + {q}$ \\
+						\Enqueue{Q, q}
+					}
+				}
+			}
+			\Return{R}
+		}
+		\caption{Algorytm znajdujący domknięcie danego stanu, czyli zbiór wszystkich stanów osiągalnych przez $\epsilon$-ścieżki
+				od stanu wejściowego $S$.}
+		\label{alg:Closure}
+		\end{pseudokod}
+	}
+\end{figure}
+
+\begin{figure}
+	\centering
+	{\small
+		\begin{pseudokod}[H]
+		\SetArgSty{normalfont}
+		\SetKwProg{Fn}{Function}{}{}
+		\Fn{Transitions($E, S, a$)}
+		{
+			R $\leftarrow$ empty set \\
+			\ForEach{$p \in S$}
+			{
+				\ForEach{state $q$ such that $(p, a, q) \in E$}
+				{
+					R $\leftarrow$ $R + {q}$
+				}
+			}
+			\Return{R}
+		}
+		\caption{Algorytm symulujący niedeterminizm automatu $NFA$ w czasie wielomianowym i pamięci ograniczonej wielomianem
+				od liczby stanów.}
+		\label{alg:Transitions}
+		\end{pseudokod}
+	}
+\end{figure}
+
+\begin{figure}
+	\centering
+	{\small
+		\begin{pseudokod}[H]
+		\SetArgSty{normalfont}
+		\SetKwProg{Fn}{Function}{}{}
+		\SetKwFunction{Enqueue}{Enque}
+		\SetKwFunction{Dequeue}{Dequeue}
+		\SetKwFunction{Closure}{Closure}
+		\SetKwFunction{Transitions}{Transitions}
+		\Fn{RegularExpressionTester($x$, $y$)}
+		{
+			$(Q, i, {t}, E)$ $\leftarrow$ $NFA$ \\
+			$C$ $\leftarrow$ \Closure{$E, {i}$} \\
+			\ForEach{letter $a$ from input text}
+			{
+				$C$ $\leftarrow$ \Closure{$E$, \Transitions{$E, C, a$}} \\
+			}
+			\Return{$t \in C$}
+		}
+		\caption{Algorytm przetwarzający tekst wejściowy zgodnie ze skonstruowanym wcześniej automatem $NFA$. Wyjściem algorytmu 
+		jest wartość $TRUE$ jeśli tekst jest akceptowany przez automat lub $FALSE$ w przeciwnym przypadku.}
+		\label{alg:RegularExpressionTester}
+		\end{pseudokod}
+	}
+\end{figure}

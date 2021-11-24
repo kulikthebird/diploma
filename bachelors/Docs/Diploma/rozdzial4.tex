@@ -1,0 +1,50 @@
+\chapter{Analiza algorytmów}
+\thispagestyle{chapterBeginStyle}
+
+Rozdział ten jest skupiony wokół analizy głównych algorytmów rozwiązujących łamigłówkę. Algorytmy pomocnicze nie są brane pod uwagę ze względu na swoją prostotę oraz mniejsze znaczenia dla działania systemu. Ośrodkiem najważniejszych algorytmów aplikacji jest moduł kombinatoryczny. Algorytmy przeanalizowano pod kątem pesymistycznego czasu działania\cite{Algorithms}. Przeprowadzono eksperymenty obliczeniowe, uzyskane średnie czasy obliczeń umieszczono w tabeli na końcu rozdziału.
+
+Jak zostało wspomniane w rozdziale 2. działanie modułu kombinatorycznego oparte jest na dwóch niezależnych fazach.
+
+W fazie pierwszej (Pseudokod 3.2) przeszukiwane jest drzewo dopuszczalnych kombinacji, w jakich może znaleźć się model. W czasie każdego kroku sprawdzane jest, czy aktualny stan jest poprawny, tj. czy do aktualnego ruchu badana część modelu znajduje się w stanie akceptującym. Stan akceptujący objawia się prawidłowym rozmieszczeniem elementów:
+\begin{itemize}
+\item brak kolizji,
+\item elementy nie są poza granicami dopuszczalnymi przez cel łamigłówki (sześcian o odpowiednim boku).
+\end{itemize}
+
+Pesymistyczna złożoność obliczeniowa jest rzędu: $ O(4^{n}) $,
+
+Złożoność pamięciowa: $ O(n) $ , gdzie n oznacza ilość łączeń znaczących.
+
+Jednakże, dzięki zastosowanym ograniczeniom ilość możliwych kombinacji diametralnie maleje. Wiąże się to ze wczesnym wykrywaniem krawędzi przeszukiwanego drzewa, które z pewnością nie doprowadzą do poprawnego wyniku. Możliwe jest to dzięki sprawdzaniu spełnienia wymagań postawionych przed modelem oraz wykrywania zaistniałych kolizji w każdym kroku przeszukiwania. Pozwala to na rozwiązanie łamigłówki składającej się z około 70 łączeń znaczących (kostka o boku długości sześciu mniejszych sześcianów) w czasie sięgającym kilkunastu minut na przeciętnym komputerze. 
+
+Faza druga (Pseudokod 3.3) jest odpowiedzialna za obliczenie wektora ruchów doprowadzających do rozwiązania łamigłówki. Poszukiwana jest permutacja ruchów. Obliczanie wspomnianego wektora jest związane z losowym rozmieszczaniem kolejności ruchów, do czasu gdy dana kombinacja rozwiąże łamigłówkę. Zastosowano również zabieg przyspieszający poszukiwania. Pesymistyczny czas takiego postępowania wydaje się być nieakceptowalny, jednakże doświadczalnie pokazane jest, że ciąg ruchów stosunkowo szybko osiąga pożądaną kolejność.
+
+Pesymistyczna złożoność obliczeniowa jest rzędu: $ O(n!/k) $,
+
+Złożoność pamięciowa: $ O(n) $, gdzie n oznacza ilość łączeń znaczących, k oznacza ilość permutacji rozwiązujących zadanie.
+
+Pesymistyczny czas wskazuje na bardzo niską optymalizację fazy drugiej. Jednakowoż liczba kombinacji rozwiązujących zagadkę rośnie wraz ze wzrostem jej złożoności, stąd prawdopodobieństwo uzyskania prawidłowej permutacji w stosunkowo krótkim czasie jest wysoka.
+
+
+
+W poniższej tabelce przedstawiono średnie czasy rozwiązywania łamigłówek różnych rozmiarów:
+\begin{center}
+\begin{tabular}{|c|r|r|}
+\hline
+{\bf Rozmiar} & {\bf Liczba łączeń znaczących} & {\bf Czas rozwiązania (sek.)} \\
+\hline
+\hline
+$2\times 2\times 2$ & $7$ & $0.0002$ \\
+\hline
+$3\times 3\times 3$ & $16$ & $0.0016$ \\
+\hline
+$4\times 4\times 4$ & $38$ & $1.8476$ \\
+\hline
+$5\times 5\times 5$ & $49$ & $3.1958$ \\
+\hline
+$6\times 6\times 6$ & $71$ & $309.4230$ \\
+\hline
+$7\times 7\times 7$ & $97$ & Przerwano po 30 minutach \\
+\hline
+\end{tabular}
+\end{center}

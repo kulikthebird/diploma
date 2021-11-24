@@ -1,0 +1,423 @@
+% ***************************************************************************************************
+%
+%	Praca inżynierska:
+%	Autor:	Tomasz Kulik
+%
+% ***************************************************************************************************
+
+% Styl dwustronny z domyślną wielkością czcionki 10pt oraz oddzieloną stroną tytułową (titlepage).
+% Domyślnie rodziały rozpoczynają się na stronie prawej (openright).
+\documentclass{book}
+\usepackage[polish]{babel}
+
+% Pakiet babel dla polskiego języka powoduje konflikt z pakietem amssymb.
+% Polecenie '\lll' definiują oba pakiety - porządana jest druga definicja.
+\let\lll\undefined
+
+\selectlanguage{polish}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{indentfirst}
+\usepackage[plmath]{polski}
+\usepackage{icomma}
+\frenchspacing
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{bbold}      % Dodatkowe wsparcie dla środowiska mathbb, które nie wspiera domyślnie cyfr (\mathbb{})
+\usepackage{mathtools}
+\usepackage[table]{xcolor}% http://ctan.org/pkg/
+\usepackage{tabu}       % Umożliwia łatwą zmianę koloru linii w tabeli
+\usepackage{xcolor}     % Umożliwia rozszerzoną kontrolę nad kolorami.
+\definecolor{lgray}{HTML}{9F9F9F}
+\definecolor{dgray}{HTML}{5F5F5F}
+\usepackage[ruled,vlined,linesnumbered,longend,algochapter]{algorithm2e}        % Udostępnia środowisko do konstruowania pseudokodów
+% ruled	- poziome kreski na początku i końcu algorytmu, podpis na górze oddzielony również kreską poziomą
+% vlined - pionowe kreski łączące początek polecenia z jego końcem
+% linesnumbered	- numerowanie kolejnych wierszy algorytmu
+% longend - długie końcówki np. ifend, forend itd.
+% algochapter - numeracja z rozdziałami
+
+% Zamiana nazwy środowiska z domyślnej "Algorithm X" na "Pseudokod X"
+\newenvironment{pseudokod}[1][htb]{
+        \renewcommand{\algorithmcfname}{Pseudokod}
+        \begin{algorithm}[#1]%
+        }{
+\end{algorithm}
+}
+
+% Zmiana rozmiaru komentarzy
+\newcommand\algcomment[1]{
+        \footnotesize{#1}
+}
+
+% Ustawienie zadanego stylu dla komentarzy
+\SetCommentSty{algcomment}
+\usepackage{textcomp}%
+\newcommand{\textapprox}{\raisebox{0.5ex}{\texttildelow}}
+\usepackage{listings}
+\renewcommand{\lstlistingname}{Kod źródłowy}
+
+% Definicje pecjalnych znaków, które nie są obsługiwane w środowisku listing
+\lstset{literate=
+        {ż}{{\.{z}}}1	{ź}{{\'{z}}}1
+        {ć}{{\'{c}}}1	{ń}{{\'{n}}}1
+        {ą}{{\c a}}1	{ś}{{\'{s}}}1
+        {ł}{{\l}}1		{ę}{{\c{e}}}1
+        {ó}{{\'{o}}}1	{á}{{\'a}}1
+        {é}{{\'e}}1		{í}{{\'i}}1
+        {ó}{{\'o}}1		{ú}{{\'u}}1
+        {ù}{{\`u}}1		{Á}{{\'A}}1
+        {É}{{\'E}}1		{Í}{{\'I}}1
+        {Ó}{{\'O}}1		{Ú}{{\'U}}1
+        {à}{{\`a}}1		{è}{{\'e}}1
+        {ì}{{\`i}}1		{ò}{{\`o}}1
+        {ò}{{\`o}}1		{À}{{\`A}}1
+        {È}{{\'E}}1		{Ì}{{\`I}}1
+        {Ò}{{\`O}}1		{Ò}{{\`O}}1
+        {ä}{{\"a}}1		{ë}{{\"e}}1
+        {ï}{{\"i}}1		{ö}{{\"o}}1
+        {ü}{{\"u}}1		{Ä}{{\"A}}1
+        {Ë}{{\"E}}1		{Ï}{{\"I}}1
+        {Ö}{{\"O}}1		{Ü}{{\"U}}1
+        {â}{{\^a}}1		{ê}{{\^e}}1
+        {î}{{\^i}}1		{ô}{{\^o}}1
+        {û}{{\^u}}1		{Â}{{\^A}}1
+        {Ê}{{\^E}}1		{Î}{{\^I}}1
+        {Ô}{{\^O}}1		{Û}{{\^U}}1
+        {œ}{{\oe}}1		{Œ}{{\OE}}1
+        {æ}{{\ae}}1		{Æ}{{\AE}}1
+        {ß}{{\ss}}1		{ç}{{\c c}}1
+        {Ç}{{\c C}}1	{ø}{{\o}}1
+        {å}{{\r a}}1	{Å}{{\r A}}1
+        {€}{{\EUR}}1	{£}{{\pounds}}1
+}
+
+% Ustawienia rozmiarów stron i ich marginesów
+\usepackage[headheight=18pt, top=25mm, bottom=25mm, left=25mm, right=25mm]{geometry}
+% headheight	-	wysokość tytułów
+% top	        -	margines górny
+% bottom	-	margines dolny
+% left		-	margines lewy
+% right		-	margines prawy
+
+% Usunięcie górnego marginesu dla środowisk
+\makeatletter
+\setlength\@fptop{0\p@}
+\makeatother
+
+\usepackage{titling}                    % zapewnia pełną kontrolę nad układem strony tytułowej.
+\usepackage{tocloft}                    % Umożliwia modyfikowanie stylu spisu treści
+\tocloftpagestyle{tableOfContentStyle}
+\usepackage{fancyhdr}                   % Definiowanie własnych stylów nagłówków i/lub stopek
+
+% Domyślny styl dla pracy
+\fancypagestyle{custom}{
+        \fancyhf{}								% wyczyść stopki i nagłówki
+        \fancyhead[RO]{								% Prawy, nieparzysty nagłówek
+                \hrulefill \hspace{16pt} \large Rozdział \thechapter
+                \put(-472.1, 12.1){%
+                        \makebox(0,0)[l]{%
+                                \includegraphics[width=0.05\textwidth]{graphics/pwr-logo}
+                        }
+                }
+                \put(-443,5.5){%
+                        \makebox(0,0)[l]{%
+                                \small Politechnika Wrocławska
+                        }
+                }
+        }
+        \fancyhead[LE]{								% Lewy, parzysty nagłówek
+                \large Rozdział \thechapter \hspace{16pt} \hrulefill
+                \put(-22, 12.1){%
+                        \makebox(0,0)[l]{%
+                                \includegraphics[width=0.05\textwidth]{graphics/wppt-logo}
+                        }
+                }
+                \put(-210,5.5){%
+                        \makebox(0,0)[l]{%
+                                \small Wydział Podstawowych Problemów Techniki
+                        }
+                }
+        }
+        \fancyfoot[LE,RO]{							% Stopki
+                \thepage
+        }
+        \renewcommand{\headrulewidth}{0pt}			% Grubość linii w nagłówku
+        \renewcommand{\footrulewidth}{0.2pt}		% Grubość linii w stopce
+}
+
+% Domyślny styl dla bibliografii
+\fancypagestyle{bibliographyStyle}{
+        \fancyhf{}									% wyczyść stopki i nagłówki
+        \fancyhead[RO]{								% Prawy, nieparzysty nagłówek
+                \hrulefill \hspace{16pt} \large Dodatek \thechapter
+                \put(-472.1, 12.1){%
+                        \makebox(0,0)[l]{%
+                                \includegraphics[width=0.05\textwidth]{graphics/pwr-logo}
+                        }
+                }
+                \put(-443,5.5){%
+                        \makebox(0,0)[l]{%
+                                \small Politechnika Wrocławska
+                        }
+                }
+        }
+        \fancyhead[LE]{								% Lewy, parzysty nagłówek
+                \large Bibliografia \hspace{16pt} \hrulefill
+                \put(-22, 12.1){%
+                        \makebox(0,0)[l]{%
+                                \includegraphics[width=0.05\textwidth]{graphics/wppt-logo}
+                        }
+                }
+                \put(-210,5.5){%
+                        \makebox(0,0)[l]{%
+                                \small Wydział Podstawowych Problemów Techniki
+                        }
+                }
+        }
+        \fancyfoot[LE,RO]{							% Stopki
+                \thepage
+        }
+        \renewcommand{\headrulewidth}{0pt}			% Grubość linii w nagłówku
+        \renewcommand{\footrulewidth}{0.2pt}		% Grubość linii w stopce
+}
+
+% Domyślny styl dla dodatków
+\fancypagestyle{appendixStyle}{
+        \fancyhf{}									% wyczyść stopki i nagłówki
+        \fancyhead[RO]{								% Prawy, nieparzysty nagłówek
+                \hrulefill \hspace{16pt} \large Dodatek \thechapter
+                \put(-472.1, 12.1){%
+                        \makebox(0,0)[l]{%
+                                \includegraphics[width=0.05\textwidth]{graphics/pwr-logo}
+                        }
+                }
+                \put(-443,5.5){%
+                        \makebox(0,0)[l]{%
+                                \small Politechnika Wrocławska
+                        }
+                }
+        }
+        \fancyhead[LE]{								% Lewy, parzysty nagłówek
+                \large Dodatek \thechapter \hspace{16pt} \hrulefill
+                \put(-22, 12.1){%
+                        \makebox(0,0)[l]{%
+                                \includegraphics[width=0.05\textwidth]{graphics/wppt-logo}
+                        }
+                }
+                \put(-210,5.5){%
+                        \makebox(0,0)[l]{%
+                                \small Wydział Podstawowych Problemów Techniki
+                        }
+                }
+        }
+        \fancyfoot[LE,RO]{							% Stopki
+                \thepage
+        }
+        \renewcommand{\headrulewidth}{0pt}			% Grubość linii w nagłówku
+        \renewcommand{\footrulewidth}{0.2pt}		% Grubość linii w stopce
+}
+
+% Osobny styl dla stron zaczynających rozdział/spis treści itd. (domyślnie formatowane jako "plain")
+\fancypagestyle{chapterBeginStyle}{
+        \fancyhf{}%
+        \fancyfoot[LE,RO]{
+                \thepage
+        }
+        \renewcommand{\headrulewidth}{0pt}
+        \renewcommand{\footrulewidth}{0.2pt}
+}
+
+% Styl dla pozostałych stron spisu treści
+\fancypagestyle{tableOfContentStyle}{
+        \fancyhf{}%
+        \fancyfoot[LE,RO]{
+                \thepage
+        }
+        \renewcommand{\headrulewidth}{0pt}
+        \renewcommand{\footrulewidth}{0.2pt}
+}
+
+% Formatowanie tytułów rozdziałów i/lub sekcji
+\usepackage{titlesec}
+
+% Formatowanie tytułów rozdziałów
+\titleformat{\chapter}[hang]					% kształt
+{
+        \vspace{-10ex}
+        \Huge
+        \bfseries
+}												% formatowanie tekstu modyfikowanego elementu
+{}												% etykieta występująca przed tekstem modyfikowanego elementu, niewidoczna w spisie treści
+{
+        10pt
+}												% odstęp formatowanego tytułu od lewego marginesu/etykiety
+{
+        \Huge
+        \bfseries
+}               % formatowanie elementów przed modyfikowanym tytułem
+[
+\vspace{2ex}
+%\rule{\textwidth}{0.4pt}
+%\vspace{-4ex}
+]												% dodatkowe formatowanie stosowane poniżej modyfikowanego tytułu
+
+
+% Formatowanie tytułów sekcji
+\titleformat{\section}[hang]					% kształt
+{
+        \vspace{2ex}
+%	\titlerule\vspace{1ex}
+        \Large\bfseries
+}												% formatowanie tekstu modyfikowanego elementu
+{
+        \thesection									% etykieta występująca przed tekstem modyfikowanego elementu, niewidoczna w spisie treści
+}
+{
+        0pt
+}												% odstęp formatowanego tytułu od lewego marginesu/etykiety
+{
+        \Large
+        \bfseries
+}% formatowanie elementów przed modyfikowanym tytułem
+
+
+\usepackage{hyperref}	% Aktywuje linki
+\hypersetup{
+        colorlinks	=	true,					% Koloruje tekst zamiast tworzyć ramki.
+        linkcolor		=	blue,					% Kolory: referencji,
+        citecolor		=	blue,					% cytowań,
+        urlcolor		=	blue					% hiperlinków.
+}
+\urlstyle{same} % Do stworzenia hiperłączy zostanie użyta ta sama (same) czcionka co dla reszty dokumentu
+\usepackage{enumitem}   % Umożliwia zdefiniowanie własnego stylu wyliczeniowego
+\newlist{myitemize}{itemize}{3}         % Nowa lista numerowana z trzema poziomami
+
+% Definicja wyglądu znacznika pierwszego poziomu
+\setlist[myitemize,1]{
+        label		=	\textbullet,
+        leftmargin	=	4mm}
+
+% Definicja wyglądu znacznika drugiego poziomu
+\setlist[myitemize,2]{
+        label		=	$\diamond$,
+        leftmargin	=	8mm}
+
+% Definicja wyglądu znacznika trzeciego poziomu
+\setlist[myitemize,3]{
+        label		=	$\diamond$,
+        leftmargin	=	12mm
+}
+
+\usepackage{graphicx}   % Dołączanie rysunków
+\usepackage{caption}    % Figury i przypisy
+\usepackage{subcaption} % Figury i przypisy
+\usepackage{footnote}   % Umożliwia tworzenie przypisów wewnątrz środowisk
+\usepackage{dirtree}    % Umożliwia tworzenie struktur katalogów
+\usepackage{multirow}   % Rozciąganie komórek tabeli na wiele wierszy
+\usepackage{calc}       % Precyzyjne obliczenia szerokości/wysokości dowolnego fragmentu wygenerowanego przez LaTeX
+\newcommand{\RR}{\mathbb{R}}    % Skrócony symbol liczb rzeczywistych
+\newcommand{\NN}{\mathbb{N}}    % Skrócony symbol liczb naturalnych
+\newcommand{\QQ}{\mathbb{Q}}    % Skrócony symbol liczb wymiernych
+\newcommand{\ZZ}{\mathbb{Z}}    % Skrócony symbol liczb całkowitych
+\newcommand{\IMP}{\rightarrow}  % Skrócony symbol logicznej implikacji
+\newcommand{\IFF}{\leftrightarrow}      % Skrócony symbol  logicznej równoważności
+
+
+\newtheorem{theorem}{Twierdzenie}[chapter]      % Środowisko do twierdzeń
+\newtheorem{lemma}{Lemat}[chapter]              % Środowisko do lematów
+\newtheorem{example}{Przykład}[chapter]         % Środowisko do przykładów
+\newtheorem{corollary}{Wniosek}[chapter]        % Środowisko do wniosków
+\newtheorem{definition}{Definicja}[chapter]     % Środowisko do definicji
+\newenvironment{proof}{                         % Środowisko do dowodów
+        \par\noindent \textbf{Dowód.}
+}{
+\begin{flushright}
+        \vspace*{-6mm}\mbox{$\blacklozenge$}
+\end{flushright}
+}
+
+\newenvironment{remark}{                        % Środowisko do uwag
+        \bigskip \par\noindent \small \textbf{Uwaga.}
+}{
+\begin{small}
+        \vspace*{4mm}
+\end{small}
+}
+
+\hyphenation{wszy-stkich ko-lu-mnę każ-da od-leg-łość
+        dzie-dzi-ny dzie-dzi-na rów-nych rów-ny
+        pole-ga zmie-nna pa-ra-met-rów wzo-rem po-cho-dzi
+        o-trzy-ma wte-dy wa-run-ko-wych lo-gicz-nie
+        skreś-la-na skreś-la-ną cał-ko-wi-tych wzo-rów po-rzą-dek po-rząd-kiem
+        przy-kład pod-zbio-rów po-mię-dzy re-pre-zen-to-wa-ne
+        rów-no-waż-ne bi-blio-te-kach wy-pro-wa-dza ma-te-ria-łów
+        prze-ka-za-nym skoń-czo-nym moż-esz na-tu-ral-na cią-gu tab-li-cy
+        prze-ka-za-nej od-po-wied-nio}
+
+
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning,fit,arrows}
+
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  frame=L,
+  xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{purple!40!black},
+  identifierstyle=\color{blue},
+  stringstyle=\color{orange},
+}
+
+\frontmatter
+\begin{document}
+        \begin{titlingpage}
+                \vspace*{\fill}
+                \begin{center}
+                        \begin{picture}(300,510)
+                                \put(11,520){\makebox(0,0)[l]{\large \textsc{Wydział Podstawowych Problemów Techniki}}}
+                                \put(11,500){\makebox(0,0)[l]{\large \textsc{Politechnika Wrocławska}}}
+                                \put(-10,320){\Huge \textsc{Algorytmy filtrowania w}}
+                                \put(-15,290){\Huge \textsc{programowaniu ograniczeń}}
+                                \put(90,250){\makebox(0,0)[l]{\large \textsc{Tomasz Kulik}}}
+                                \put(200,100){\makebox(0,0)[l]{\large Praca magisterska napisana}}
+                                \put(200,80){\makebox(0,0)[l]{\large pod kierunkiem}}
+                                \put(200,60){\makebox(0,0)[l]{\large dr Przemysława Kobylańskiego}}
+                                \put(115,-70){\includegraphics[width=0.15\textwidth]{graphics/pwr}}
+                                \put(106,-80){\makebox(0,0)[bl]{\large \textsc{Wrocław 2019}}}
+                        \end{picture}
+                \end{center}
+                \vspace*{\fill}
+        \end{titlingpage}
+        \cleardoublepage
+        \pagenumbering{Roman}
+        \pagestyle{tableOfContentStyle}
+        \tableofcontents
+        \cleardoublepage
+        \pagestyle{custom}
+        \mainmatter
+        \input{00_intro}
+        \cleardoublepage
+        \input{01_chapter1}
+        \input{02_chapter2}
+        \input{03_chapter3}
+        \input{04_chapter4}
+        \input{05_chapter5}
+        \input{06_summary}
+        \pagestyle{bibliographyStyle}
+        \bibliographystyle{plabbrv}
+        \bibliography{bibliography}
+        \thispagestyle{chapterBeginStyle}
+        \addcontentsline{toc}{chapter}{Bibliografia}
+        \cleardoublepage
+        \appendix
+        \pagestyle{appendixStyle}
+        \input{appendix}
+        \cleardoublepage
+\end{document}
+

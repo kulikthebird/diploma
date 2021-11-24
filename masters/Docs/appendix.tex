@@ -1,0 +1,27 @@
+\chapter{Zawartość płyty CD}
+\thispagestyle{chapterBeginStyle}
+\label{plytaCD}
+
+Płyta CD zawiera:
+\begin{itemize}
+    \item Pracę dyplomową w formie elektronicznej - format PDF.
+    \item Kody źródłowe biblioteki zawierające implementację \textit{RegexConstraint}
+    \item Przykłady użycia ograniczenia \textit{RegexConstraint}
+\end{itemize}
+
+\par
+W głównym katalogu zawierającym wszystkie dodatki zawarty jest plik \textit{Makefile}. Do jego uruchomienia potrzebne
+jest środowisko posiadające polecenie 'make'. W celu skompilowania plików przykładowych należy posłużyć się poleceniem:
+\begin{lstlisting}[language=bash]
+    $ make compile CPX_PATH=[path to IBM CPLEX] \
+            SYSTEM=[name of directory with static libs in IBM CPLEX]
+\end{lstlisting}
+Następnie aby uruchomić pliki testowe należy użyć polecenia:
+\begin{lstlisting}[language=bash]
+    $ make test
+\end{lstlisting}
+
+\par
+Główny katalog zawiera m. in. katalogi \textit{Src} oraz \textit{Inc} zawierające pełną implementację omawianego ograniczenia.
+Katalog test zawiera pliki testowe, służące do zaprezentowania działania zaproponowanej implementacji.
+W katalogu \textit{Doc} umieszczona została praca dyplomowa w wersji PDF. 

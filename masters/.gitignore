@@ -1,0 +1,7 @@
+Bin/*
+*.aux
+*.out
+*.log
+*.toc
+*.nav
+*.snm

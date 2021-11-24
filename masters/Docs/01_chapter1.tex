@@ -1,0 +1,273 @@
+\chapter{Podstawowe pojęcia}
+\thispagestyle{chapterBeginStyle}
+\label{rozdzial1}
+Rozdział poświęcony jest między innymi krótkiemu wprowadzeniu w tematykę programowania z ograniczeniami, działania
+algorytmów filtrujących oraz ich miejsca w modelowaniu. Omówiono również podstawowe zagadnienia z dziedziny języków
+formalnych jakimi są języki regularne oraz praktyczne sposoby ich opisu. Połączenie powyższych zagadnień pozwala
+na opis globalnych ograniczeń przy pomocy wyrażeń regularnych na sekwencjach zmiennych o określonych dziedzinach.
+
+
+\section{Programowanie z ograniczeniami}
+\par
+Nawiązując do książki "Handbook of Constraints Programming"~\cite{HandbookOfCP}, programowanie z ograniczeniami to
+paradygmat służący rozwiązywaniu kombinatorycznych problemów przeszukiwania, pojawiających się w wielu dziedzinach
+techniki m. in. w sztucznej inteligencji, szeroko pojętej informatyce oraz badaniach operacyjnych.
+\par
+Formalnie problem spełnienia ograniczeń $P$ to taka trójka $(X, D, C)$, gdzie 
+\begin{itemize}
+    \item $X$ - n-elementowa krotka $(X_1, X_2, ... , X_n)$ zmiennych,
+    \item $D$ - n-elementowa krotka $(D_1, D_2, ... , D_n)$ zbiorów stanowiących dziedziny odpowiadających zmiennych z
+                krotki X, tj. $X_i \in D_i$,
+    \item $C$ - t-elementowa krotka $(C_1, C_2, ... , C_t)$ ograniczeń narzuconych na zmienne z krotki $X$.
+\end{itemize}
+Ograniczenia są to relacje pomiędzy zmiennymi. Innymi słowy ograniczenie $C_i$ jest to para $(R_{Si}, S_i)$, gdzie
+\begin{itemize}
+    \item $S_i$ jest krotką złożoną ze zmiennych krotki $X$,
+    \item $R_{Si}$ jest podzbiorem iloczynu kartezjańskiego dziedzin zmiennych
+        z krotki $S_i$, tj. $R_{Si} \subseteq (D_1^{Si} \times D_2^{Si} \times ... \times D_k^{Si})$.
+\end{itemize}
+Rozwiązaniem problemu $P$ jest n-elementowa krotka $A = (a_1, a_2, ... , a_n)$, w której każde $a_i \in D_i$ oraz
+wszystkie narzucone ograniczenia zostały spełnione - $(\forall_{(R, S) \in C}) \pi_S(A) \in R$, gdzie
+$\pi_S(A)$ jest to rzut krotki $A$ zawierający zmienne ze zbioru $S$. Zbiorem $sol(P)$ nazywa się zbiór rozwiązań
+dopuszczalnych dla problemu $P$ zawierającym wszystkie możliwe rozwiązania spełniające ograniczenia.
+\par
+W dalszej części rozważany będzie również zbiór $\Omega = D_1 \times D_2 \times ... \times D_n$.
+Jest to zbiór wszystkich krotek, w których wartość każdej zmiennej przynależy do odpowiedniej dziedziny.
+Innymi słowy jest to zbiór dopuszczalnych wyników ze względu na dziedziny zmiennych.
+\par
+\begin{example}
+\textbf{Problem spełnienia ograniczeń:}
+\begin{equation}
+    \left\{
+        \begin{aligned}
+            X &= (A, B, C), \\
+            D &= (\{2,3\}, \{3,4\}, \{8,16,32\})
+        \end{aligned}
+    \right.
+\end{equation}
+Powyżej zdefiniowane zostały zmienne oraz ich dziedziny. Następnym krokiem jest określenie ograniczeń na tych zmiennych:
+\begin{equation}
+    \left\{
+        \begin{aligned}
+            3A &> C \\
+            3B &> C \\
+            A &\neq B,
+        \end{aligned}
+    \right.
+\end{equation}
+Jedynym dopuszczalnym rozwiązaniem dla powyższego problemu jest trójka: $(A=3, B=4, C=8)$.
+\end{example}
+
+\section{Poszukiwanie rozwiązania}
+\par
+Podstawą działania algorytmów rozwiązujących problemy programowania z ograniczeniami są:
+\begin{itemize}
+    \item Przeszukiwanie
+    \item Wnioskowanie
+\end{itemize}
+Pierwsze z nich polega kolejnym generowaniu potencjalnych wektorów wynikowych 
+$A' \in \Omega$. Jeśli krotka $A'$ spełnia wszystkie narzucone ograniczenia z $C$
+to staje się jednym z potencjalnie wielu rozwiązań danego problemu. Stosuje się różne techniki
+oraz heurystyki poszukiwania rozwiązania.
+\par
+Łatwo zauważyć, że przetestowanie wszystkich
+możliwych krotek wymaga $|\Omega| = |D_1| * |D_2| * ... * |D_n|$ prób. Celem zredukowania mocy zbioru $\Omega$
+stosuje się metodę wnioskowania, tj. usuwania z dziedzin zmiennych tych wartości, które z pewnością nie mogą zostać
+wybrane ze względu na narzucone ograniczenia. Taki proces nazywa się propagacją ograniczeń. Również w tej kwestii
+rozważyć można wiele różnych technik. W ogólności im bardziej algorytm jest w stanie zawęzić dziedziny tym
+mniej pracy będzie miał algorytm przeszukiwania, co najczęściej przyspiesza znalezienie wyniku.
+\par
+Połączenie wyżej wspomnianych technik skutkuje szybszym znalezieniem rezultatów. Iteracyjne stosowanie przeszukiwania
+z nawrotami oraz propagacji ograniczeń zawęża drzewo przeszukiwania, co jest ważnym atutem w przypadku problemów
+NP-trudnych, do których najczęściej stosuje się technikę programowania z ograniczeniami.
+
+\section{Propagacja ograniczeń}
+W przypadku algorytmów przeszukiwania można uciekać się do stosowania różnych heurystycznych metod. Jednak
+to zawężanie zbioru dopuszczalnych rozwiązań stanowi główną zaletę algorytmu. Podstawową metodą redukcji dziedzin
+jest propagacja przy użyciu tzw. Network Consistency. Ta metoda pozwala zachować lokalną spójność pomiędzy
+dziedzinami zmiennych.
+\par
+Niech zmienne z problemu $P$ będą reprezentowane przez wierzchołki w grafie. Pierwszą z technik jest wprowadzenie
+spójności wierzchołkowej (ang. Node consistency). Polega to redukcji dziedzin zmiennych tak, by spełniały ograniczenia
+jednoargumentowe dla nich samych, tj. $D'_i = D_i \cap R_j$, dla każdego $R_j$ będącego ograniczeniem dla zmiennej $X_i$. 
+Krawędzie pomiędzy wierzchołkami reprezentują ograniczenia binarne pomiędzy parami zmiennych. Dla ograniczenia pomiędzy
+zmiennymi $X_i$ oraz $X_j$ - $R_{ij}$ należy rozpatrzeć spójność krawędziową - ang. Arc consistency.
+W tym celu wykluczyć można te wartości dziedzin zmiennych, które nie należą do relacji, tj. wyznaczyć
+$D'_i = D_i \cap \pi_i(R_{ij})$ oraz analogicznie $D'_j = D_j \cap \pi_j(R_{ij})$. Po zredukowaniu dziedziny
+danej zmiennej może okazać się, że w grafie powstały kolejne niespójności, więc proces ten należy powtarzać iteracyjnie
+do momentu osiągnięcia pełnej spójności grafu.
+\par
+Kolejnym możliwym etapem propagacji ograniczeń jest spójność ścieżek - ang. Path consistency. Analogicznie jak w przypadku
+spójności krawędziowej można przeanalizować spójność relacji dwóch zmiennych $R_{ij}$ względem dziedziny trzeciej zmiennej
+$X_m$. Polega to na wykluczaniu z $R_{ij}$ takich par dopuszczalnych wartości, które nie pozwalają zmiennej $X_m$
+przypisać żadnej wartości.
+
+\section{Globalna spójność}
+\par
+Osiągnięcie ogólnej krawędziowej spójności jest problemem NP-trudnym~\cite{HandbookOfCP}. Jednak w wielu
+przypadkach możliwe jest wprowadzenie wyspecjalizowanych algorytmów o niższej złożoności czasowej i/lub
+pamięciowej. Za sztandarowy przykład można uznać ograniczenie \textit{all\_different}, narzucające na zmienne warunek, aby
+wartości tych zmiennych były parami różne - $\forall_{x'_1, x'_2 \in all\_diff(x_1,...,x_k)} x'_1 \neq x'_2$.
+\begin{example}
+\textbf{Problem all\_different:}
+\begin{equation}
+    \begin{cases}
+        \begin{aligned}
+            X &= (A, B, C), \\
+            D &= (\{1, 2, 3\}, \{1, 2, 3\}, \{1, 2, 3\}), \\
+            &\text{pod warunkiem, że:} \\
+            &\text{all\_different($A$, $B$, $C$).}
+        \end{aligned}
+    \end{cases}
+\end{equation}
+Zbiorem rozwiązań są wszystkie permutacje trójki: $(1, 2, 3)$.
+\par
+\end{example}
+W celu zrozumienia sensu wprowadzania dodatkowych algorytmów dla \textit{all\_different} należy rozpatrzeć następny przykład.
+\begin{example}
+\textbf{Problem zmiennych o parami różnych wartościach:}
+\begin{equation}
+    \begin{cases}
+        \begin{aligned}
+            X &= (A, B, C, D), \\
+            D &= (\{1, 2, 3\}, \{1, 2, 3\}, \{1, 2, 3\}, \{1, 2, 3\}), \\
+            &\text{pod warunkiem, że:} \\
+            A &\neq B, A \neq C, A \neq D, \\
+            B &\neq C, B \neq D, C \neq D.
+        \end{aligned}
+    \end{cases}
+\end{equation}
+Zbiór rozwiązań jest pusty, ponieważ nie jest możliwe takie wartościowanie, które dla każdej pary zmiennych przyporządkuje różne
+wartości. Zauważyć można, że spójność wierzchołkowa wraz z krawędziową są zachowane, więc nie nastąpi redukcja dziedzin.
+Analiza spójności ścieżek również nie wykaże problemów. Algorytm przeszukiwania przetestuje więc cały zbiór $\Omega$ zanim
+stwierdzi, że problem nie ma rozwiązania. W tym przypadku dopiero sprawdzenie 4-spójności wszystkich kombinacji trzech zmiennych
+$<X_i, X_j, X_m>$ względem czwartej zmiennej $X_k$ pozwoliłoby zauważyć sprzeczność, jednak w ogólności badanie n-spójności jest
+problemem trudnym pod względem złożoności. W przypadku \textit{all\_different} istnieje jednak algorytm o wielomianowym czasie 
+wykonywania, który skutecznie propaguje ograniczenia oraz jest w stanie stwierdzić sprzeczność na etapie samej propagacji~
+\cite{Filtering}. Działa on w oparciu o rozwiązanie problemu na grafie dwudzielnym.
+\end{example}
+
+\section{Języki regularne}
+Języki regularne jest to rodzina języków akceptowanych przez automaty skończone (o skończonej liczbie stanów).
+Gramatykę można opisać w następujący sposób:
+\begin{equation}
+    \begin{aligned}
+        A &\rightarrow a \text{ - symbol \textit{a} jest dowolnym terminalem} \\
+        A &\rightarrow aB \text{ - symbol \textit{a} jest dowolnym terminalem, a \textit{B} nieterminalem} \\
+        A &\rightarrow \epsilon \text{ - gdzie $\epsilon$ jest pustym łańcuchem znaków}
+    \end{aligned}
+\end{equation}
+\par
+Innym sposobem przedstawiania gramatyki regularnej są tzw. wyrażenia regularne (ang. regular expressions).
+Przy pomocy konkatenacji, alternatywy oraz domknięcia Kleene'ego możliwe jest opisanie gramatyki języka regularnego:
+\begin{itemize}
+    \item $ab$ - konkatenacja oznacza, że po znaku $a$ musi pojawić się znak $b$
+    \item $a|b$ - alternatywa wykluczająca, tj. w danym miejscu może pojawić się albo $a$ albo $b$
+    \item $a^*$ - domknięcie Kleene'ego oznacza 0 lub więcej znaków $a$
+\end{itemize}
+Wyrażenia regularne wzbogacone są również o inne operatory, które w znacznym stopniu ułatwiają zapis wyrażenia, np.
+\begin{itemize}
+    \item $a^? \equiv (a|\epsilon)$
+    \item $a^+ \equiv (aa^*)$
+    \item $[a-z0-9] \equiv (a|b|c|...|z|0|1|...|9)$
+    \item $[\string^a]$ - dowolny znak poza symbolem $a$
+\end{itemize}
+\par
+Automaty skończone można podzielić na dwie klasy - automat deterministyczny ($DFA$ - ang. deterministic finite automaton)
+oraz automat niedeterministyczny ($NFA$ - ang. non-deterministic finite automaton). Moc obu klas jest równa, co oznacza,
+że każdą gramatykę regularną można przedstawić zarówno w postaci automatu $DFA$ jak i $NFA$~\cite{FormalLanguages1}.
+Deterministyczny automat skończony jest to piątka $(Q, \Sigma, \delta, s, F)$:
+\begin{itemize}
+    \item $Q$ jest skończonym zbiorem stanów
+    \item $\Sigma$ to alfabet wejściowy
+    \item $\delta: Q \cap \Sigma \leftarrow Q$ jest funkcją przejścia pomiędzy stanami
+    \item $s \in Q$ jest stanem startowym
+    \item $F \subseteq Q$ jest zbiorem stanów akceptujących
+\end{itemize}
+Automaty skończone można przedstawić w postaci grafu, w którym wierzchołki oznaczają stany, a krawędzie
+przejścia pomiędzy stanami (pod warunkiem wystąpienia odpowiedniego symbolu/symboli).
+\begin{figure}
+    \centering
+    \resizebox{0.40\textwidth}{!}{
+        \begin{tikzpicture}[>=stealth',shorten >=1pt,auto,node distance=1.0cm]
+            \node[state,initial] (q_0)   {$q_0$}; 
+            \node[state] (q_1) [above right=of q_0] {$q_1$}; 
+            \node[state] (q_2) [below right=of q_0] {$q_2$}; 
+            \node[state,accepting](q_3) [below right=of q_1] {$q_3$};
+            \path[->] 
+                (q_0) edge  node  {0} (q_1)
+                    edge  node  [swap] {1} (q_2)
+                (q_1) edge  node  {1} (q_3)
+                    edge  [loop above] node {0} ()
+                (q_2) edge  node [swap] {0} (q_3) 
+                    edge  [loop below] node {1} ();
+        \end{tikzpicture}
+    }
+    \caption{Przykład automatu skończonego, który jest równoważny wyrażeniu regularnemu: $(00^{*}1)|(11^{*}0)$}
+\end{figure}
+\par
+Z formalnego punktu widzenia niedeterministyczny automat skończony $NFA$ z definicji różni się od $DFA$ funkcją
+przejścia. W przypadku niedeterministycznej wersji występuje $\delta: Q \cap \Sigma \rightarrow 2^Q$, gdzie
+$2^Q$ oznacza zbiór potęgowy stanów automatu. Oznacza to, że z danego stanu i symbolu wejściowego można
+niedeterministycznie przejść do każdego ze stanów określonego podzbioru $Q$. Istnieje co najmniej kilka
+metod radzenia sobie ze złożonością obliczeniową automatów $NFA$, co zostanie poruszone w następnym rozdziale.
+
+\par
+Symbol $\epsilon$ oznacza pusty łańcuch znaków. Oznacza to możliwość bezwarunkowego skoku do kolejnego stanu bez
+pobrania symbolu z taśmy wejściowej. Przejście pomiędzy dwoma stanami $S_i \rightarrow S_j$ pod warunkiem wystąpienia
+$\epsilon$ będzie w dalszej części pracy określone przez $\epsilon$-przejście, a ciąg możliwych przejść z danego stanu
+$S_i$ do $S_j$ oznaczany
+$S_i \rightarrow S_{k1} \rightarrow S_{k2} \rightarrow ... \rightarrow S_j \equiv S_i \rightarrow^* S_j$ będzie nazywane
+$\epsilon$-ścieżką.
+
+\section{Wyrażenia regularne jako opis globalnych ograniczeń}
+\par
+W literaturze można spotkać różne nazwy określające algorytmy propagacji ograniczeń jak np. algorytmy filtrujące,
+globalne ograniczenia itp. Powstały również zbiory zawierające opisy działania oraz sposoby implementacji poszczególnych
+globalnych ograniczeń. Jednym ze sposobów na opisanie rozwiązań dopuszczalnych dla zadanej sekwencji zmiennych jest
+użycie automatu skończonego~\cite{Automata}.
+Sekwencje akceptowane przez automat byłyby dopuszczalnymi rozwiązaniami dla danego globalnego ograniczenia, a sekwencja
+niezaakceptowana oznaczałaby niespełnienie ograniczenia i w konsekwencji natychmiastowy nawrót algorytmu przeszukującego.
+Jednocześnie na podstawie samego automatu można ograniczać dziedziny zmiennych, co pozwala na skuteczniejszą propagację
+ograniczenia.
+\par
+Każdy automat skończony można przedstawić w postaci wyrażenia regularnego oraz każde wyrażenie regularne możne zostać
+przedstawione w formie automatu skończonego~\cite{FormalLanguages2}. Zatem dla niektórych globalnych ograniczeń wygodnie
+byłoby opisać ich działanie w formie wyrażenia regularnego.
+\par
+Jako dobry przykład może posłużyć problem rozmieszczania rozłącznych odcinków w wektorze zmiennych binarnych.
+Załóżmy, że $X = (X_1, X_2, ... , X_n)$ oraz, że każda zmienna $X_i \in \{ 0, 1 \} $. Niech w sekwencji $X$ rozmieszczone
+będzie $k$ odcinków o zadanych długościach $I = (I_1, I_2, ..., I_k)$ wartościowanych jedynkami, a pomiędzy odcinkami 
+zmienne będą wartościowane zerem. Kolejność wystąpienia odcinków jest taka jak w wektorze $I$. 
+\par
+\begin{example}
+\textbf{Problem rozmieszczania odcinków:}
+\begin{equation}
+    \begin{cases}
+        \begin{aligned}
+            X &= (X_1, X_2, X_3, X_4, X_5, X_6, X_7), \\
+            D &= (\{0, 1\}, ... , \{0, 1\}), \\
+            &\text{Niech w wektorze $X$ rozmieszczone będą odcinki $(2, 3)$.}
+        \end{aligned}
+    \end{cases}
+\end{equation}
+\par
+Dopuszczalne rozwiązania powyższego problemu to:
+\begin{equation}
+    \begin{aligned}
+        &(1, 1, 0, 1, 1, 1, 0) \\
+        &(1, 1, 0, 0, 1, 1, 1) \\
+        &(0, 1, 1, 0, 1, 1, 1) \\
+    \end{aligned}
+\end{equation}
+\par
+\end{example}
+\par
+Nawiązując do automatów skończonych, dla powyższego przykładu można skonstruować wyrażenie regularne na sekwencji $X$
+opisujące ograniczenia na rozmieszczanie zadanych odcinków: $ 0^{*} 1^2 0^{+} 1^2 0^{*} $. W ogólności sekwencję
+$I = (I_1, I_2, ..., I_k)$ można skonstruować na podstawie wzoru
+$ 0^{*} (1^{I_1} 0^{+}) (1^{I_2} 0^{+}) ... 1^{I_k} 0^{*} $. To oznacza, że dla każdego przykładu powyższe ograniczenie
+można zapisać w postaci wyrażenia regularnego, a co za tym idzie skonstruować automat $NFA$. Dalsza część pracy skupiona
+jest na przetwarzaniu ciągu znaków wyrażenia regularnego na automat $NFA$ oraz zoptymalizowanej metodzie przetwarzania
+sekwencji zmiennych (ich dziedzin) używając tego automatu. Przedstawiona została również metoda propagacji
+ograniczeń na podstawie stworzonego automatu.

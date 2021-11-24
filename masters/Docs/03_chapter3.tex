@@ -1,0 +1,221 @@
+\chapter{Proponowany algorytm filtrowania}
+\thispagestyle{chapterBeginStyle}
+\par
+Rozdział zawiera opis algorytmu filtrującego dziedziny zmiennych, z których składa sekwencja wejściowa. Dzięki odpowiedniej
+modyfikacji metody \textit{RegularExpressionTester} algorytm jest w stanie zebrać informacje dotyczące dopuszczalnych wartości
+dla każdej zmiennej. W dalszym procesie dane te są wykorzystane do narzucania możliwych wartości w dziedzinach analizowanych
+zmiennych. Po zaakceptowaniu ciągu wejściowego przez automat, zaczynając od stanu końcowego, algorytm iteruje się od końca
+sekwencji aż do pierwszej zmiennej kończąc na stanie początkowym. W każdym kroku tej iteracji dla każdej zmiennej zbierane
+są wartości, dzięki którym możliwe było przejście do stanu końcowego. Wartości te staną się nową dziedziną dla danej zmiennej,
+a dzięki zapisanym informacjom nt. tego, z którego stanu nastąpiło przejście możliwe jest odtworzenie wszystkich możliwych przejść.
+\par
+Bazując na literaturze oraz analizie nowego algorytmu zebrane zostały twierdzenia dotyczące teoretycznej złożoności czasowej oraz
+pamięciowej proponowanej przeze mnie metody. Poddana analizie została również poprawność algorytmu.
+
+\section{Konstrukcja automatu filtrującego dziedziny}
+\par
+Powyższa metoda może zostać użyta w procesie przetwarzania sekwencji zmiennych o zadanych dziedzinach. Zamiast pojedynczego
+symbolu ciągu wejściowego $a_i$ można rozważyć zbiór wartości z dziedziny $D_i$, tj. zaakceptować przejście automatu do kolejnego
+stanu, jeśli wymagany do przejścia symbol występuje w dziedzinie zmiennej $X_i$. Głównym celem jest jednak znalezienie możliwości
+zredukowania dziedzin zmiennych. W takim przypadku ważnymi danymi, jakie algorytm musi uzyskać są dopuszczone przez automat
+wartości dla każdej zmiennej z sekwencji. Aby to uzyskać konieczne jest śledzenie przejść automatu pomiędzy stanami
+dla każdej zmiennej wejściowej, więc długość sekwencji staje się kolejnym mnożnikiem w złożoności pamięciowej działania
+algorytmu.
+\begin{figure}
+	\centering
+	{\small
+		\begin{pseudokod}[H]
+		\SetArgSty{normalfont}
+		\SetKwProg{Fn}{Function}{}{}
+		\SetKwFunction{Enqueue}{Enque}
+		\SetKwFunction{Dequeue}{Dequeue}
+		\SetKwFunction{Closure}{Closure}
+		\SetKwFunction{Transitions}{Transitions}
+		\Fn{evaluateAutomatonWithInputVars($Automaton$, $Vars$)}
+		{
+			$(Q, start, {t}, E)$ $\leftarrow$ $Automaton$ \\
+			$currentStates$ $\leftarrow$ \Closure{$E, \{start\}$} \\
+			$feasibleValues$ $\leftarrow$ 2D table of size [$n$][$k$] \\
+			\ForEach{variable $X_i$ from input vars sequence}
+			{
+				\ForEach{state $c \in C$}
+				{
+					\ForEach{state $q$ such that $a \in D_i$ $AND$ $(p, a, q) \in E$}
+					{
+						$C'$ $\leftarrow$ $C' + \{q\}$ \\
+						$feasibleValues[i][c]$ $\leftarrow$ $feasibleValues[i][q] + \{(p, a)\}$ \\
+					}
+				}
+				$currentStates$ $\leftarrow$ \Closure{$E, C'$} \\
+			}
+			\Return{$C, feasibleValues$}
+		}
+		\caption{Algorytm bazujący na funkcji \textit{RegularExpressionTester}. Dodanymi przeze mnie krokiem
+				 jest zapisywanie historii przejść pomiędzy stanami w czasie procesowania kolejnych zmiennych
+				 z sekwencji wejściowej.}
+		\label{alg:evaluateAutomatonWithInputVars}
+		\end{pseudokod}
+	}
+\end{figure}
+
+\section{Redukcja dziedzin}
+\par
+Jeśli zbiór aktualnych stanów będzie pusty zanim wszystkie zmienne zostaną przetworzone to znaczy, że aktualne dziedziny
+sekwencji nie są akceptowane przez automat i algorytm propagujący zgłosi naruszenie ograniczenia. Wówczas nastąpi nawrót
+(ang. backtracking) w algorytmie przeszukiwania. Taka sama sytuacja wydarzy się w przypadku, gdy przeanalizowany zostanie cały
+ciąg wejściowy i zbiór stanów aktywnych nie będzie zawierał stanu końcowego (lub stanu, który jest połączony ścieżką
+$\epsilon$-przejść ze stanem końcowym).
+\par
+Gdy ciąg zmiennych został zaakceptowany przez automat można przystąpić do redukcji dziedzin. Zaczynając od stanu końcowego $s_k$ i
+ostatniej zmiennej $D_n$ z sekwencji wejściowej dzięki zapisanym informacjom o tym, z którego stanu i jakim symbolem nastąpiło
+przejście można odtworzyć wszystkie możliwe wartości zaakceptowane przez automat dla $D_n$. Oznaczając taki zbiór dopuszczalnych
+wartości przez $D'_n$ można z całą pewnością uznać ten zbiór jako nową dziedzinę dla zmiennej $X_n$. Przetwarzając kolejne
+stany i kolejne zmienne możliwa jest redukcja dziedzin dla każdej z nich (jeśli zbiór $D'_i$ jest różny od $D_i$).
+\par
+W czasie przeszukiwania algorytm propagujący ograniczenie zostaje uruchomiony za każdym razem, gdy dziedziny zmiennych
+mu podlegających zostają zmodyfikowane na przykład przez działanie propagacji innych ograniczeń bądź przez ustalenie
+wartościowania zmiennej (które de facto jest zredukowaniem dziedziny zmiennej do jednej wartości).
+\begin{figure}
+	\centering
+	{\small
+		\begin{pseudokod}[H]
+		\SetArgSty{normalfont}
+		\SetKwProg{Fn}{Function}{}{}
+		\SetKwFunction{resetFeasibleValuesVectors}{resetFeasibleValuesVectors}
+		\SetKwFunction{evaluateAutomatonWithInputVars}{evaluateAutomatonWithInputVars}
+		\SetKwFunction{findFinishStatesAfterSearch}{findFinishStatesAfterSearch}
+		\SetKwFunction{reduceVarsDomains}{reduceVarsDomains}
+		\SetKwFunction{violateConstraint}{violateConstraint}
+		\Fn{RegexFiltering($Automaton$, $Vars$)}
+		{
+			$statesAfterSearching$, $feasibleValues$ $\leftarrow$ \evaluateAutomatonWithInputVars{$Automaton$, $Vars$} \\
+			$finishStates$ $\leftarrow$ \findFinishStatesAfterSearch{$statesAfterSearching$, $Automaton$} \\
+			\If{$finishStates$ is empty}
+			{
+				\violateConstraint{}
+			}
+			\reduceVarsDomains{$finishStates$, $feasibleValues$, $Vars$}
+		}
+		\caption{Zarys algorytmu propagacji ograniczenia opisanego wyrażeniem regularnym (źródło własne).}
+		\label{alg:RegexFiltering}
+		\end{pseudokod}
+	}
+\end{figure}
+\par
+Algorytm~\ref{alg:RegexFiltering} korzysta ze zdefiniowanej wcześniej funkcji \textit{evaluateAutomatonWithInputVars} oraz
+dwóch dodatkowych \textit{findFinishStatesAfterSearch} i \textit{reduceVarsDomains}. Pierwsza z nich filtruje stany pod kątem tego,
+czy w ich domknięciach znajduje się stan końcowy. Jeśli nie ma takiego stanu to oznacza, że ograniczenie nie zostało spełnione.
+Druga z wymienionych funkcji jest bardziej warta uwagi, ponieważ to w niej następuje właściwa redukcja dziedzin zmiennych.
+\begin{figure}
+	\centering
+	{\small
+		\begin{pseudokod}[H]
+		\SetArgSty{normalfont}
+		\SetKwProg{Fn}{Function}{}{}
+		\SetKwFunction{Insert}{Insert}
+		\SetKwFunction{SetDomain}{SetDomain}
+		\SetKwFunction{Swap}{Swap}
+		\Fn{reduceVarsDomains($finishStates$, $feasibleValues$, $Vars$)}
+		{
+			\For{$i$ $\leftarrow$ size of variables seq. \KwTo 1}
+			{
+				$nextStates$ $\leftarrow$ empty set \\
+				$goodValues$ $\leftarrow$ empty set \\
+				\ForEach{state $\in$ finishStates}
+				{
+					\ForEach{$(p, a)$ $\in$ $feasibleValues$[$i$][$state$]}
+					{
+						\Insert{$nextStates$, $p$} \\
+						\Insert{$goodValues$, $a$} \\
+					}
+				}
+				\SetDomain{$Vars$[$i$], $goodValues$} \\
+				\Swap{$finishStates$, $nextStates$} \\
+			}
+		}
+		\caption{Algorytm redukujący dziedziny zmiennych na podstawie wyników działania automatu $NFA$.}
+		\label{alg:reduceVarsDomains}
+		\end{pseudokod}
+	}
+\end{figure}
+
+\section{Poprawność algorytmu}
+Algorytm \textit{RegexFiltering} wyklucza te wartości z dziedzin sekwencji zmiennych, które nie będą mogły być wykorzystane do 
+poprawnego wartościowania zapewniającego akceptację ciągu przez automat. 
+\begin{theorem}
+Proponowany algorytm filtrujący \textit{RegexFiltering} zawsze się zatrzymuje.
+\end{theorem}
+\begin{proof}
+Procedura \textit{RegexFiltering} (patrz kod \ref{alg:RegexFiltering}) wywołuje sekwencyjnie trzy funkcje, którym należy się przyjrzeć. Funkcja
+\textit{evaluateAutomatonWithInputVars} zawiera trzy zagnieżdżone pętle \textit{for} o ściśle określonych warunkach zakończenia,
+które w czasie działania tej funkcji są niezmienne. Kolejnym krokiem jest funkcja \textit{findFinishStatesAfterSearch}, która
+jedynie wyszukuje stany końcowe w domknięciu wszystkich stanów, w jakich zatrzymał się automat. Ostatnia \textit{reduceVarsDomains}
+podobnie jak pierwsza z omawianych zawiera zagnieżdżone pętle \textit{for}, których warunki zakończenia są niezależne od jej
+działania i są zdefiniowane w poprawny sposób.
+\end{proof}
+\begin{theorem}
+Proponowany algorytm filtrujący \textit{RegexFiltering} nigdy nie usunie dopuszczalnego rozwiązania.
+\end{theorem}
+\begin{proof}
+Wynika to z samej zasady działania algorytmu. Po przeanalizowaniu całego wejścia przez automat następuje przetwarzanie
+wypełnionej struktury \textit{feasibleValues} zaczynając od stanu końcowego aż do stanu początkowego.
+W ten sposób algorytm będzie poruszał się jedynie po ścieżkach zaakceptowanych przez automat, nie omijając żadnych dopuszczalnych
+wartości.
+\end{proof}
+\par
+Z tego samego twierdzenia wynika, że \textit{RegexFiltering} zawsze poprawnie redukuje dziedziny - każde możliwe dopuszczalne
+rozwiązanie w czasie każdej iteracji znajduje się w przefiltrowanym zbiorze dziedzin $D'_1 \times ... \times D'_n$.
+
+\section{Złożoność obliczeniowa algorytmu}
+\begin{theorem}
+Złożoność czasowa algorytmu \textit{evaluateAutomatonWithInputVars} wynosi $O(n*k^2)$, a złożoność pamięciowa $O(n*k)$.
+\label{theory:evaluateAutomatonWithInputVars}
+\end{theorem}
+\begin{proof}
+Pod względem złożoności czasowej, różnicą pomiędzy \textit{evaluateAutomatonWithInputVars} a metodą
+\textit{RegularExpressionTester} jest zapisywanie historii przejść pomiędzy stanami do tablicy \textit{feasibleValues}.
+Ponieważ zapis ten odbywa się w czasie $O(1)$ jest on zaniedbywalny w kontekście asymptotycznej złożoności.
+Jednakże, przez wprowadzenie tzw. $\epsilon$-przejść (patrz rozdział 1.) w automacie, w pesymistycznym przypadku
+w czasie procesowania każdego stanu $S_i$ może okazać się, że konieczne jest przetworzenie dodatkowo $k-i$
+stanów osiągalnych przez $\epsilon$-ścieżki. To oznacza, że dla $k$ stanów algorytm może przeanalizować
+dla danej zmiennej $X_j$:
+\begin{equation}
+	\begin{aligned}
+		\sum_{i=1}^{k}{(k-i)} = \frac{1}{2}(k-1)k \in O(k^2)
+	\end{aligned}
+\end{equation}
+Z tego wynika, że przetworzenie całego ciągu wejściowego kosztuje:
+\begin{equation}
+	\begin{aligned}
+		\sum_{j=1}^{n}{\sum_{i=1}^{k}{(k-i)}} \in O(n*k^2)
+	\end{aligned}
+\end{equation}
+\par
+Zwiększeniu względem \textit{RegularExpressionTester} podlega też złożoność pamięciowa, ponieważ algorytm ten wymaga tablicy wielkości $n*k$ wektorów
+par $(p, a)$, gdzie $p$ oznacza stan z którego nastąpiło przejście, a $a$ symbol przejścia. Każdy wektor par
+może w danym przebiegu algorytmu przechować maksymalnie $l = k*\alpha$, gdzie $\alpha$ jest stałą oznaczającą maksymalną
+liczbę przejść, jaka może wyjść z jednego stanu. Liczba par jaka może zostać dodana do $feasibleValues[i]$ w czasie
+przetwarzania zmiennej $X_i$ to również $k*\alpha$, a więc zamortyzowany koszt pamięciowy jednego wektora par dla $X_i$
+wynosi $l' = \frac{k*\alpha}{k} = \alpha$, a więc $O(1)$. To oznacza, że wielkości wektorów par nie wpływają na asymptotyczną
+złożoność pamięciową.
+\end{proof}
+\begin{theorem}
+Złożoność czasowa algorytmu \textit{reduceVarsDomains} wynosi $O(n*k)$.
+\label{theory:reduceVarsDomains}
+\end{theorem}
+\begin{proof}
+Algorytm~\ref{alg:reduceVarsDomains} iteracyjnie przechodzi po wszystkich zmiennych ciągu wejściowego oraz po zbiorze
+aktualnych stanów dodając do zbioru następnych stanów kolejne wpisy, których jest maksymalnie $O(k)$. Zakładając, że
+implementacja zbioru pozwala na dodanie wpisu w zaniedbywalnym czasie to po złożeniu tych funkcji wynikiem jest $O(n*k)$.
+\end{proof}
+\par
+Korzystając z powyższych twierdzeń można wyprowadzić wniosek:
+\begin{theorem}
+Złożoność czasowa algorytmu \textit{RegexFiltering} wynosi $O(n*k^2)$.
+\label{theorem:RegexFiltering}
+\end{theorem}
+\begin{proof}
+Złożoność algorytmu \textit{RegexFiltering} można uzyskać przez zsumowanie złożoności poszczególnych metod składowych, tj.
+(patrz algorytmy \ref{theory:evaluateAutomatonWithInputVars} i \ref{theory:reduceVarsDomains}) oraz \textit{findFinishStatesAfterSearch}.
+W wyniku daje to $O(n*k^2) + O(n*k) + O(k) = O(n*k^2)$.
+\end{proof}

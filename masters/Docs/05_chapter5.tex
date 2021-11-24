@@ -1,0 +1,158 @@
+\chapter{Eksperymenty obliczeniowe}
+\thispagestyle{chapterBeginStyle}
+Przedstawiony w rozdziale pierwszym przykład ograniczenia opisanego wzorem wyrażenia regularnego może posłużyć np. do rozwiązywania
+tzw. \textit{Nonogramów}. Jest to również dobry przykład na zaprezentowanie wydajności działania tego algorytmu filtrującego
+porównując wyniki z modeli korzystających jedynie z dostępnych w pakiecie ograniczeń. W fazie testowej algorytmu dokonano również
+testów poprawności algorytmu oraz sprawdzono rzeczywistą złożoność czasową względem teoretycznej.
+
+
+\section{Propagacja na jednym wektorze}
+\par
+Podstawowymi testami wydajnościowymi dostępnymi w plikach testowych są:
+\begin{itemize}
+  \item Zestaw badający złożoność czasową pod kątem rosnącej długości wektora wejściowego.
+  \item Zestaw badający złożoność czasową pod kątem rosnącej złożoności wyrażenia regularnego.
+\end{itemize}
+\par
+Wyniki zostały zobrazowane na wykresach \ref{chart:vectorLength} oraz \ref{chart:regexLength}. Na pierwszym wykresie widać
+kształt funkcji ograniczonej przez prostą. Można to zinterpretować jako liniowy wzrost złożoności czasowej względem długości
+wektora zmiennych wejściowych. Pokrywa się to z dowodem \ref{theorem:RegexFiltering} przeprowadzonym w rozdziale 4. Drugi z wykresów przedstawia
+funkcję przechylającą się łukiem ku górze, co oznacza ponad liniowy stosunek czasu propagacji do rosnącej złożoności samego wyrażenia regularnego.
+Przez \textbf{złożoność} rozumie się liczbę stanów automatu $NFA$ wygenerowanego na podstawie wyrażenia oraz liczbę $\epsilon$-przejść,
+jakie w nim występują. W przykładowym teście użyto generatora wyrażeń regularnych bazującego na wzorze:
+\begin{equation}
+\begin{aligned}
+  & Gen(k) =( (0)^* | (1)^* | (2)^* | ... | (k)^* )^*
+\end{aligned}
+\end{equation}
+\par
+Funkcja $Gen(k)$ tworzy wyrażenie regularne, dla którego automat $NFA$ po przetłumaczeniu przez funkcję \textit{parseRegex}
+będzie posiadał $\epsilon$-ścieżki pomiędzy każdą parą stanów. Oznacza to, że analizując kolejne wejścia automatu, algorytm
+będzie musiał dla każdego z $O(k)$ stanów przeanalizować dodatkowo $k-1$ pozostałych stanów. W tym przypadku osiąga się pesymistyczną
+złożoność algorytmu: $O(n*k^2)$.
+\begin{figure}
+\centering
+\resizebox{0.65\linewidth}{!}{
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,509); %set diagram left start at 0, and has height of 509
+%Straight Lines [id:da6884170676007542] 
+\draw [color={rgb, 255:red, 245; green, 166; blue, 35 }  ,draw opacity=1 ][line width=3]    (102.85,401) -- (146,378) -- (192,343) -- (240,315) -- (282,290) -- (325,261) -- (368,242) -- (409,216) -- (451,192) -- (503,161) -- (547,137) ;
+%Shape: Axis 2D [id:dp5636889612231564] 
+\draw  (50,401) -- (578.5,401)(102.85,59) -- (102.85,439) (571.5,396) -- (578.5,401) -- (571.5,406) (97.85,66) -- (102.85,59) -- (107.85,66) (192.85,396) -- (192.85,406)(282.85,396) -- (282.85,406)(372.85,396) -- (372.85,406)(462.85,396) -- (462.85,406)(552.85,396) -- (552.85,406)(97.85,311) -- (107.85,311)(97.85,221) -- (107.85,221)(97.85,131) -- (107.85,131) ;
+\draw   (199.85,413) node[anchor=east, scale=0.75]{20} (289.85,413) node[anchor=east, scale=0.75]{40} (379.85,413) node[anchor=east, scale=0.75]{60} (469.85,413) node[anchor=east, scale=0.75]{80} (559.85,413) node[anchor=east, scale=0.75]{100} (99.85,311) node[anchor=east, scale=0.75]{10} (99.85,221) node[anchor=east, scale=0.75]{20} (99.85,131) node[anchor=east, scale=0.75]{30} ;
+% Text Node
+\draw (522,443) node  [align=left] {Długość wektora};
+% Text Node
+\draw (67,96) node [rotate=-270] [align=left] {czas [s.]};
+\end{tikzpicture}
+}
+\caption{Krzywa obrazująca wzrost złożoności czasowej względem długości wejściowego wektora zmiennych.
+         Złożoność wyrażenia regularnego została ustalona na $Gen(700)$.}
+\label{chart:vectorLength}
+\end{figure}
+
+\begin{figure}
+\centering
+\resizebox{0.65\linewidth}{!}{
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,544); %set diagram left start at 0, and has height of 544
+%Straight Lines [id:da40570912889495325] 
+\draw [color={rgb, 255:red, 245; green, 166; blue, 35 }  ,draw opacity=1 ][line width=3]    (102.85,401.8) -- (151.5,396) -- (192.5,387) -- (238.5,374) -- (283.5,354) -- (325.5,332) -- (370.5,305) -- (420.5,261) -- (463.5,207) -- (506.5,156) -- (560.5,42) ;
+%Shape: Axis 2D [id:dp34516663752241405] 
+\draw  (50,401.8) -- (578.5,401.8)(102.85,4) -- (102.85,446) (571.5,396.8) -- (578.5,401.8) -- (571.5,406.8) (97.85,11) -- (102.85,4) -- (107.85,11) (192.85,396.8) -- (192.85,406.8)(282.85,396.8) -- (282.85,406.8)(372.85,396.8) -- (372.85,406.8)(462.85,396.8) -- (462.85,406.8)(552.85,396.8) -- (552.85,406.8)(97.85,311.8) -- (107.85,311.8)(97.85,221.8) -- (107.85,221.8)(97.85,131.8) -- (107.85,131.8)(97.85,41.8) -- (107.85,41.8) ;
+\draw   (199.85,413.8) node[anchor=east, scale=0.75]{40} (289.85,413.8) node[anchor=east, scale=0.75]{80} (379.85,413.8) node[anchor=east, scale=0.75]{120} (469.85,413.8) node[anchor=east, scale=0.75]{160} (559.85,413.8) node[anchor=east, scale=0.75]{200} (99.85,311.8) node[anchor=east, scale=0.75]{2} (99.85,221.8) node[anchor=east, scale=0.75]{4} (99.85,131.8) node[anchor=east, scale=0.75]{6} (99.85,41.8) node[anchor=east, scale=0.75]{8} ;
+% Text Node
+\draw (470,443) node  [align=left] {Złożoność wyrażenia regularnego};
+% Text Node
+\draw (67,96) node [rotate=-270] [align=left] {czas [s.]};
+\end{tikzpicture}
+}
+\caption{Krzywa obrazująca wzrost złożoności czasowej względem rosnącej złożoności automatu wyrażenia regularnego.
+         Długość wektora została ustalona na $300$ zmiennych.}
+\label{chart:regexLength}
+\end{figure}
+
+
+\section{Rozwiązywanie nonogramów}
+Jedną z możliwości zastosowania $RegexConstraint$ jest rozwiązywanie zagadek logicznych nazywanych \textit{Nonogramami}
+(tzw. \textit{Griddlers problem}). Polega to na odtworzeniu obrazka na podstawie informacji o liczbie odcinków
+oraz ich długościach w danym rzędzie/kolumnie. Obrazki mogą być wielokolorowe bądź monochromatyczne.
+
+\begin{center}
+  \begin{tabular}{|c|r|r|r|r|r|r|}
+  \hline
+          & \rotatebox{-60}{\bf(2)} & \rotatebox{-60}{\bf(2)} & \rotatebox{-60}{\bf(1, 4)} & 
+          \rotatebox{-60}{\bf(4)} & \rotatebox{-60}{\bf(1)} & \rotatebox{-60}{\bf(4)} \\
+  \hline
+  {\bf(2)}    &   &   & 1 & 1 &   &   \\
+  \hline
+  {\bf(2, 1)} & 1 & 1 &   & 1 &   &   \\
+  \hline
+  {\bf(4, 1)} & 1 & 1 & 1 & 1 &   & 1 \\
+  \hline
+  {\bf(4)}    &   &   & 1 & 1 & 1 & 1 \\
+  \hline
+  {\bf(1, 1)} &   &   & 1 &   &   & 1 \\
+  \hline
+  {\bf(1, 1)} &   &   & 1 &   &   & 1 \\
+  \hline
+  \end{tabular}
+  \captionof{table}{Przykład nonogramu i jego rozwiązanie.}
+\end{center}
+\par
+Czas rozwiązywania nonogramów jest bardzo zróżnicowany. Jeśli obrazek poddaje się w czasie samej propagacji ograniczeń
+zanim w ogóle algorytm wyszukiwania zacznie działać to czas działania dla obrazków nawet o boku długości 40 jest mniejszy
+niż sekunda. Jeśli jednak samo wnioskowanie nie pozwala na ścisłe odnalezienie rozwiązania, tj. po etapie wstępnej propagacji
+pozostaną jeszcze zmienne o nieustalonym wartościowaniu, to czas działania znacznie się wydłuża ze względu na
+losowe przydzielanie wartości przez algorytm przeszukujący drzewo rozwiązań.
+
+\begin{center}
+  \begin{tabular}{|c|r|}
+  \hline
+  {\bf Rozmiar obrazka} & {\bf Czas rozwiązania (sek.)} \\
+  \hline
+  \hline
+  $10 \times 10$ & $0.01$ \\
+  \hline
+  $15 \times 15$ & $0.02$ \\
+  \hline
+  $20 \times 20$ & $0.14$ \\
+  \hline
+  $25 \times 25$ & $2.81$ \\
+  \hline
+  $30 \times 30$ & $16.68$ \\
+  \hline
+  \end{tabular}
+  \captionof{table}{Tabela przedstawiająca wyniki czasowe rozwiązywania losowo wygenerowanych nonogramów.}
+\end{center}
+
+\par
+W załączniku z kodem źródłowym są podane przykłady nonogramów o rozmiarach od $6 \times 6$ aż do $50 \times 50$.
+W celu porównania działania algorytmu \textit{RegexConstraint} z istniejącą implementacją predykatu \textit{automaton}
+w języku \textit{SWI-Prolog} wykonano eksperymenty na wspomnianych nonogramach. Wyniki czasów działania obu algorytmów
+przedstawia tabela \ref{tab:nonograms}.
+\begin{center}
+  \begin{tabular}{|c|r|r|}
+  \hline
+    {\bf Rozmiar obrazka} &
+    {\bf SWI-Prolog} &
+    {\bf \textit{RegexConstraint}} \\
+  \hline
+  \hline
+  $6 \times 6$ & $0.022$ s. & ok. $0.00$ s. \\
+  \hline
+  $10 \times 10$ & $0.056$ s. & $0.01$ s. \\
+  \hline
+  $20 \times 20$ & $0.235$ s. & $0.02$ s. \\
+  \hline
+  $50 \times 50$ & $4.79$ s. & $0.42$ s. \\
+  \hline
+  \end{tabular}
+  \captionof{table}{Tabela przedstawia porównanie wyników działania programu opartego o predykat \textit{automaton} napisany w SWI-Prologu
+            oraz czas rozwiązywania modelu napisanego przy użyciu ograniczenia \textit{RegexConstraint}.}
+  \label{tab:nonograms}
+\end{center}
+
+% TODO

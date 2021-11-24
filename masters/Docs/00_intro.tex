@@ -1,0 +1,21 @@
+\chapter{Wstęp}
+\thispagestyle{chapterBeginStyle}
+
+
+\par
+Praca swoim zakresem obejmuje wstęp do tematyki globalnych ograniczeń w programowaniu z ograniczeniami oraz propozycję
+nowego sposobu zapisywania ograniczeń na sekwencjach zmiennych. Celem niniejszej pracy jest zaprojektowanie oraz implementacja
+nowych algorytmów filtrowania w programowaniu z ograniczeniami oraz porównanie ich efektywności z innymi rozwiązaniami. 
+Implementacja została wykonana w języku C++11 przy użyciu bibliotek z pakietu IBM ILOG CPLEX CP Optimizer. W pracy zostały 
+przedstawione podstawowe pojęcia pozwalające na zrozumienie zagadnienia programowania z ograniczeniami oraz innych
+wykorzystanych koncepcji. Pierwszy rozdział stanowi krótki wstęp do problematyki programowania z ograniczeniami.
+Omówiony został w nim mechanizm poszukiwania rozwiązań dopuszczalnych oraz propagacji ograniczeń. Głównym mechanizmem,
+na którym skupia się praca jest możliwość zdefiniowania ograniczenia w oparciu o skonstruowane przez użytkownika
+wyrażenie regularne. Rozdział drugi zawiera opis działania algorytmu pozwalającego na wprowadzanie ograniczeń opisanych
+wyrażeniem regularnym. Dzięki połączeniu zmodyfikowanej metody Thompsona kompilacji \textit{regex} do automatów NFA z algorytmem
+pozwalającym na przetworzenie sekwencji zmiennych oraz filtrowanie ich dziedzin umożliwiono wprowadzenie wygodniejszej
+w zdefiniowaniu metody. Nie jest to jednak główna zaleta płynąca z takiego podejścia. Algorytm filtrujący może wykorzystać
+podane w wyrażeniu informacje dotyczące akceptowanych ciągów i w każdej iteracji odrzucać nieosiągalne wartości z dziedzin
+zmiennych. W ostatniej części zaprezentowany został sposób użycia nowego ograniczenia w przykładowych modelach. Przedstawiono wyniki
+analizy wydajności rozwiązanych modeli wykorzystujących wspomniany sposób oraz porównano je z modelami, w których
+wykorzystano inne predefiniowane ograniczenia dostępne w pakiecie.

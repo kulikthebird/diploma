@@ -1,0 +1,17 @@
+\chapter{Podsumowanie}
+\thispagestyle{chapterBeginStyle}
+
+\par
+Możliwość opisu globalnych ograniczeń przy pomocy wyrażeń regularnych wyraźnie zmniejsza skomplikowanie modeli, które
+dają się zapisać w takiej formie. Dobór odpowiednich algorytmów sprawia też, że tego typu modele można rozwiązać o wiele
+szybciej niż przy pomocy ,,konwencjonalnych'' metod. Pomimo użycia dość prostych metod wyniki są zaskakująco dobre i to
+potencjalnie może sprawić, że użycie tego typu ograniczeń stanie się bardziej rozpowszechnione. W celu dalszego zwiększenia
+wydajności można poszukać lepszych, bardziej szczegółowych rozwiązań dotyczących kompilacji wyrażeń regularnych do automatów
+skończonych - wiele z takich metod została już wcześniej opisana.
+\par
+W implementacji języka SWI-Prolog znajduje się predykat o nazwie \textit{automaton}. Jako argumenty przyjmuje opis automatu $NFA$,
+wektor liczników oraz tzw. sygnatury, czyli relacje pomiędzy kolejnymi elementami ciągu wejściowego. Działanie tej metody
+jest oparte o mechanizmy wnioskowania wbudowane w sam język (programowania w logice). W przedstawionej pracy została
+zaprezentowana metoda napisana w ściśle imperatywnym stylu. Nie ma żadnych przeszkód, aby użytą w tym przypadku gramatykę
+wyrażeń regularnych wzbogacić o użycie liczników, a sam algorytm filtrujący o ich obsługę. Pozostawia to dalszą możliwość
+rozwoju tej metody.

@@ -1,0 +1,113 @@
+\documentclass{beamer}
+\usetheme{Warsaw}
+\usepackage{ragged2e}
+\usecolortheme{beaver}
+\title[]
+{Computer modeling and solving geometry puzzles that requires collision detection}
+\author[Kulik, Kobylanski]
+{
+    Tomasz ~Kulik and
+    Przemyslaw ~Kobylanski
+}
+\institute[Wroclaw University of Science and Technology]
+{
+  Institute of Mathematics and Computer Science\\
+  Wrocław University of Science and Technology\\
+  POLAND
+}
+\date[OR 2016]
+{OR, 2016}
+\subject{Computer Science}
+
+
+\begin{document}
+    \frame
+    {
+        \titlepage
+    }
+    \frame
+    {
+        \frametitle{Purpose}
+        The program aims to solving some types of geometry puzzles. The result of the automaton is
+        3D graphic animation that shows the solution step by step.
+    }
+
+    \section{Model representation}
+    \frame
+    {
+        \frametitle{Next module}
+        \tableofcontents[currentsection]
+    }
+
+    \frame
+    {
+        \frametitle{Human readable file structure}
+        \itemize
+        {
+            \item Descriptions of each type of elements.
+            \item Relations between pairs of elements:
+                \begin{itemize}
+                    \item Relative position of element to another one,
+                    \item Capabilities of movement in relation with another element.
+                \end{itemize}
+            \item Description of expected results.
+        }
+    }
+
+    \section{Collision detector}
+    \frame
+    {
+        \frametitle{Next module}
+        \tableofcontents[currentsection]
+    }
+
+    \frame
+    {
+        \frametitle{Collision prediction}
+        It is one of most important part of the solver. Collision detector
+        predicts potential collision and inform the main solver about this possibility.
+    }
+
+    \frame
+    {
+        \frametitle{Collision prediction}
+        Prediction of possible collision after move of model's part:
+        \begin{itemize}
+            \item During object rotation
+            \item During object translation
+        \end{itemize}
+    }
+
+    \section{Puzzle solver}
+    \frame
+    {
+        \frametitle{Next module}
+        \tableofcontents[currentsection]
+    }
+    \frame
+    {
+        \frametitle{Searching tree}
+        Solving algorithm is based on searching tree.\\
+        Solver is looking for result in set of all possible moves of each element in Model.
+    }
+    \section{Graphics representation}
+    \frame
+    {
+        \frametitle{Next module}
+        \tableofcontents[currentsection]
+    }
+    \frame
+    {
+        \frametitle{3D animation}
+        Animation based on result from solver.\\
+        Tool used to render graphics is OpenGL\\
+    }
+
+    \frame
+    {
+        \frametitle{}
+        Thank you for your attention
+    }
+
+
+\end{document}
